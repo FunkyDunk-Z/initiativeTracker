@@ -33,10 +33,9 @@ exports.getAll = (Model) => async (req, res, next) => {
   }
 }
 
-exports.getOne = (Model, popOptions) => async (req, res, next) => {
+exports.getOne = (Model) => async (req, res, next) => {
   try {
     let query = Model.findById(req.params.id)
-    // if (popOptions) query = query.populate(popOptions)
     const doc = await query
 
     if (!doc) {
