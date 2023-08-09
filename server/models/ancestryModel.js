@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 
+const addToCodex = require('../middleware/addToCodex')
+
 const Schema = mongoose.Schema
 
 const ancestrySchema = new Schema({
@@ -30,6 +32,8 @@ const ancestrySchema = new Schema({
   },
   image: String,
 })
+
+// mongoose.plugin(addToCodex, 'Ancestries')
 
 const Ancestry = mongoose.model('Ancestry', ancestrySchema)
 

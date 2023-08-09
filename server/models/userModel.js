@@ -1,41 +1,45 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
+const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 
-const userSchema = new mongoose.Schema(
+const Codex = require('./codexModel')
+
+const Schema = mongoose.Schema
+
+const userSchema = new Schema(
   {
     firstName: {
       type: String,
-      required: [true, "please provide a first name"],
+      required: [true, 'please provide a first name'],
     },
     lastName: {
       type: String,
-      required: [true, "please provide a last name"],
+      required: [true, 'please provide a last name'],
     },
     username: {
       type: String,
-      required: [true, "please provide a username"],
+      required: [true, 'please provide a username'],
       unique: true,
     },
     email: {
       type: String,
-      required: [true, "please provide a valid email"],
+      required: [true, 'please provide a valid email'],
       unique: true,
       lowercase: true,
     },
     password: {
       type: String,
-      required: [true, "please provide a valid password"],
-      minLength: [3, "password must be at least nine characters"],
+      required: [true, 'please provide a valid password'],
+      minLength: [3, 'password must be at least nine characters'],
     },
     passwordConfirm: {
       type: String,
-      required: [true, "please confirm password"],
+      required: [true, 'please confirm password'],
       validate: {
         validator: function (value) {
-          return value === this.password;
+          return value === this.password
         },
-        message: "passwords do not match!",
+        message: 'passwords do not match!',
       },
       select: false,
     },
@@ -48,75 +52,79 @@ const userSchema = new mongoose.Schema(
       default: true,
       select: false,
     },
+    codex: {
+      type: Schema.Types.ObjectId,
+      ref: 'Codex',
+    },
   },
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
-);
+)
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next()
 
-  this.password = await bcrypt.hash(this.password, 12);
+  this.password = await bcrypt.hash(this.password, 12)
 
-  this.passwordConfirm = undefined;
+  this.passwordConfirm = undefined
 
-  next();
-});
+  next()
+})
 
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password") || this.isNew) return next();
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next()
 
-  this.passwordChangedAt = Date.now() - 1000;
-  next();
-});
+  this.passwordChangedAt = Date.now() - 1000
+  next()
+})
 
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } });
+  this.find({ active: { $ne: false } })
 
-  next();
-});
+  next()
+})
 
-// userSchema.pre("save", async function (next) {
-//   const { _id } = await Codex.create({ user: this._id });
+userSchema.pre('save', async function (next) {
+  const { _id } = await Codex.create({ user: this._id })
 
-//   this.set("codex", _id);
+  this.set('codex', _id)
 
-//   next();
-// });
+  next()
+})
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  return await bcrypt.compare(candidatePassword, userPassword);
-};
+  return await bcrypt.compare(candidatePassword, userPassword)
+}
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10
-    );
-    return JWTTimestamp < changedTimestamp;
+    )
+    return JWTTimestamp < changedTimestamp
   }
 
-  return false;
-};
+  return false
+}
 
 userSchema.methods.createPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(32).toString('hex')
 
   this.passwordResetToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetToken)
-    .digest("hex");
+    .digest('hex')
 
-  this.passwordResetExpiresIn = Date.now() + 10 * 60 * 1000;
+  this.passwordResetExpiresIn = Date.now() + 10 * 60 * 1000
 
-  return resetToken;
-};
+  return resetToken
+}
 
 userSchema.methods.getUserInfo = function () {
   return {
@@ -125,8 +133,9 @@ userSchema.methods.getUserInfo = function () {
     username: this.username,
     firstName: this.firstName,
     lastName: this.lastName,
-  };
-};
-const User = mongoose.model("User", userSchema);
+    codex: this.codex,
+  }
+}
+const User = mongoose.model('User', userSchema)
 
-module.exports = User;
+module.exports = User

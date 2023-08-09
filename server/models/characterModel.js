@@ -1,51 +1,56 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
+const addToCodex = require('./../middleware/addToCodex')
 
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 const abilityNames = [
-  "strength",
-  "dexterity",
-  "constitution",
-  "intelligence",
-  "wisdom",
-  "charisma",
-];
+  'strength',
+  'dexterity',
+  'constitution',
+  'intelligence',
+  'wisdom',
+  'charisma',
+]
 
 const skillNames = [
-  "acrobatics",
-  "animal handling",
-  "arcana",
-  "athletics",
-  "deception",
-  "history",
-  "insight",
-  "intimidation",
-  "investigation",
-  "medicine",
-  "nature",
-  "perception",
-  "performance",
-  "persuasion",
-  "religion",
-  "sleight of hand",
-  "stealth",
-  "survival",
-];
+  'acrobatics',
+  'animal handling',
+  'arcana',
+  'athletics',
+  'deception',
+  'history',
+  'insight',
+  'intimidation',
+  'investigation',
+  'medicine',
+  'nature',
+  'perception',
+  'performance',
+  'persuasion',
+  'religion',
+  'sleight of hand',
+  'stealth',
+  'survival',
+]
 
 const senseNames = [
-  "passive perception",
-  "passive insight",
-  "passive investigation",
-];
+  'passive perception',
+  'passive insight',
+  'passive investigation',
+]
 
 const playerCharacterSchema = new Schema({
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
   characterName: {
     type: String,
     required: true,
   },
   characterTitles: {
     type: Schema.ObjectId,
-    ref: "Titles",
+    ref: 'Titles',
   },
   level: {
     type: Number,
@@ -53,11 +58,11 @@ const playerCharacterSchema = new Schema({
   },
   ancestry: {
     type: Schema.ObjectId,
-    ref: "Ancestry",
+    ref: 'Ancestry',
   },
   class: {
     type: Schema.ObjectId,
-    ref: "Class",
+    ref: 'Class',
   },
   abilities: [
     {
@@ -171,7 +176,7 @@ const playerCharacterSchema = new Schema({
     hitDie: {
       type: Number,
       default: function () {
-        return this.level;
+        return this.level
       },
     },
   },
@@ -183,7 +188,7 @@ const playerCharacterSchema = new Schema({
     swimming: {
       type: Number,
       default: function () {
-        return Math.floor(this.speeds.walking / 2);
+        return Math.floor(this.speeds.walking / 2)
       },
     },
     flying: {
@@ -191,85 +196,84 @@ const playerCharacterSchema = new Schema({
       default: 0,
     },
   },
-});
+})
 
 // PROFICIENCY
-playerCharacterSchema.pre("save", function (next) {
+playerCharacterSchema.pre('save', function (next) {
   if (this.level < 5) {
-    this.proficiency = 2;
+    this.proficiency = 2
   } else if (this.level < 11) {
-    this.proficiency = 3;
+    this.proficiency = 3
   } else if (this.level < 17) {
-    this.proficiency = 4;
+    this.proficiency = 4
   } else {
-    this.proficiency = 5;
+    this.proficiency = 5
   }
 
-  next();
-});
+  next()
+})
 
 // ABILITY SCORES
-playerCharacterSchema.pre("save", function (next) {
+playerCharacterSchema.pre('save', function (next) {
   this.abilities.forEach((ability) => {
-    const { abilityScore } = ability;
+    const { abilityScore } = ability
 
     if (abilityScore > 30 || abilityScore < 0) {
-      return next();
+      return next()
     }
 
-    const mod = Math.floor((abilityScore - 10) / 2);
+    const mod = Math.floor((abilityScore - 10) / 2)
 
-    ability.abilityMod = mod;
-    ability.savingThrow.savingThrowMod = mod;
+    ability.abilityMod = mod
+    ability.savingThrow.savingThrowMod = mod
 
     if (ability.savingThrow.isProficient === true) {
-      ability.savingThrow.savingThrowMod += this.proficiency;
+      ability.savingThrow.savingThrowMod += this.proficiency
     }
-  });
+  })
 
-  next();
-});
+  next()
+})
 
 // SKILLS
-playerCharacterSchema.pre("save", function (next) {
+playerCharacterSchema.pre('save', function (next) {
   const abilityScores = this.abilities.reduce((acc, ability) => {
-    acc[ability.abilityName] = ability.abilityMod;
-    return acc;
-  }, {});
+    acc[ability.abilityName] = ability.abilityMod
+    return acc
+  }, {})
 
   this.skills.forEach((skill) => {
-    const abilityMod = abilityScores[skill.skillAbility];
+    const abilityMod = abilityScores[skill.skillAbility]
 
     skill.skillMod =
       abilityMod +
       (skill.isProficient ? this.proficiency : 0) +
-      (skill.hasDoubleProficiency ? this.proficiency : 0);
-  });
+      (skill.hasDoubleProficiency ? this.proficiency : 0)
+  })
 
-  this.initiative = abilityScores.dexterity;
+  this.initiative = abilityScores.dexterity
 
-  next();
-});
+  next()
+})
 
 // SENSES
-playerCharacterSchema.pre("save", function (next) {
+playerCharacterSchema.pre('save', function (next) {
   const skillMods = this.skills.reduce((acc, skill) => {
-    acc[skill.skillName] = skill.skillMod;
-    return acc;
-  }, {});
+    acc[skill.skillName] = skill.skillMod
+    return acc
+  }, {})
 
   this.senses.forEach((sense) => {
-    const senseMod = skillMods[sense.skill];
+    const senseMod = skillMods[sense.skill]
 
-    sense.senseMod = senseMod;
-  });
+    sense.senseMod = senseMod
+  })
 
-  next();
-});
+  next()
+})
 
-const PlayerCharacter = mongoose.model(
-  "PlayerCharacter",
-  playerCharacterSchema
-);
+mongoose.plugin(addToCodex, 'characters')
 
-module.exports = PlayerCharacter;
+const PlayerCharacter = mongoose.model('PlayerCharacter', playerCharacterSchema)
+
+module.exports = PlayerCharacter

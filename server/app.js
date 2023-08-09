@@ -6,6 +6,7 @@ const cors = require('cors')
 const userRouter = require('./routes/userRoutes')
 const ancestryRouter = require('./routes/ancestryRoutes')
 const characterRouter = require('./routes/characterRoutes')
+const codexRouter = require('./routes/codexRoutes')
 
 const app = express()
 
@@ -28,5 +29,6 @@ app.use(cookieParser())
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/ancestry', ancestryRouter)
 app.use('/api/v1/character', characterRouter)
+app.use('/api/v1/codex', codexRouter)
 
 module.exports = app

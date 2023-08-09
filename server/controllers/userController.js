@@ -49,26 +49,31 @@ exports.deleteMyAccount = async (req, res, next) => {
   })
 }
 
-// exports.getUser = async (req, res, next) => {
-//   try {
-//     const user = User.findById(req.params.id)
+exports.getUser = async (req, res, next) => {
+  try {
+    const query = User.findById(req.params.id)
 
-//     if (!user) {
-//       return next(new AppError('No Document found with that ID', 404))
-//     }
+    const user = await query.populate({
+      path: 'codex',
+      select: '-__v -user',
+    })
 
-//     res.status(200).json({
-//       status: 'success',
-//       data: user.getUserInfo(),
-//     })
-//   } catch (error) {
-//     console.error(error)
-//     return next()
-//   }
-// }
+    if (!user) {
+      return next(new AppError('No Document found with that ID', 404))
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: user.getUserInfo(),
+    })
+  } catch (error) {
+    console.error(error)
+    return next()
+  }
+}
 
 exports.createUser = crudOps.createOne(User)
 exports.getAllUsers = crudOps.getAll(User)
-exports.getUser = crudOps.getOne(User)
+// exports.getUser = crudOps.getOne(User)
 exports.updateUser = crudOps.updateOne(User)
 exports.deleteUser = crudOps.deleteOne(User)
