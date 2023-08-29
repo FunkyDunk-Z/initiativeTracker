@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const addToCodex = require('./../middleware/addToCodex')
+const removeFromCodex = require('../middleware/removeFromCodex')
 
 const Schema = mongoose.Schema
 
@@ -113,25 +114,6 @@ const playerCharacterSchema = new Schema({
         default: false,
       },
       skillMod: {
-        type: Number,
-      },
-      hasAdvantage: {
-        type: Boolean,
-        default: false,
-      },
-    },
-  ],
-  senses: [
-    {
-      _id: false,
-      senseName: {
-        type: String,
-        enum: senseNames,
-      },
-      skill: {
-        type: String,
-      },
-      senseMod: {
         type: Number,
       },
       hasAdvantage: {
@@ -256,23 +238,8 @@ playerCharacterSchema.pre('save', function (next) {
   next()
 })
 
-// SENSES
-playerCharacterSchema.pre('save', function (next) {
-  const skillMods = this.skills.reduce((acc, skill) => {
-    acc[skill.skillName] = skill.skillMod
-    return acc
-  }, {})
-
-  this.senses.forEach((sense) => {
-    const senseMod = skillMods[sense.skill]
-
-    sense.senseMod = senseMod
-  })
-
-  next()
-})
-
 mongoose.plugin(addToCodex, 'characters')
+mongoose.plugin(removeFromCodex, 'characters')
 
 const PlayerCharacter = mongoose.model('PlayerCharacter', playerCharacterSchema)
 
