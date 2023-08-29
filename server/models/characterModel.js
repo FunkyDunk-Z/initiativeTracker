@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const addToCodex = require('./../middleware/addToCodex')
-const removeFromCodex = require('../middleware/removeFromCodex')
+const Container = require('./containerModel')
 
 const Schema = mongoose.Schema
 
@@ -34,16 +34,17 @@ const skillNames = [
   'survival',
 ]
 
-const senseNames = [
-  'passive perception',
-  'passive insight',
-  'passive investigation',
-]
+const characterTypes = ['player', 'npc']
 
-const playerCharacterSchema = new Schema({
+const characterSchema = new Schema({
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
+  },
+  characterType: {
+    type: String,
+    required: true,
+    enum: characterTypes,
   },
   characterName: {
     type: String,
@@ -178,10 +179,16 @@ const playerCharacterSchema = new Schema({
       default: 0,
     },
   },
+  inventory: [
+    {
+      type: Schema.ObjectId,
+      ref: 'Container',
+    },
+  ],
 })
 
 // PROFICIENCY
-playerCharacterSchema.pre('save', function (next) {
+characterSchema.pre('save', function (next) {
   if (this.level < 5) {
     this.proficiency = 2
   } else if (this.level < 11) {
@@ -196,7 +203,7 @@ playerCharacterSchema.pre('save', function (next) {
 })
 
 // ABILITY SCORES
-playerCharacterSchema.pre('save', function (next) {
+characterSchema.pre('save', function (next) {
   this.abilities.forEach((ability) => {
     const { abilityScore } = ability
 
@@ -218,7 +225,7 @@ playerCharacterSchema.pre('save', function (next) {
 })
 
 // SKILLS
-playerCharacterSchema.pre('save', function (next) {
+characterSchema.pre('save', function (next) {
   const abilityScores = this.abilities.reduce((acc, ability) => {
     acc[ability.abilityName] = ability.abilityMod
     return acc
@@ -239,8 +246,7 @@ playerCharacterSchema.pre('save', function (next) {
 })
 
 mongoose.plugin(addToCodex, 'characters')
-mongoose.plugin(removeFromCodex, 'characters')
 
-const PlayerCharacter = mongoose.model('PlayerCharacter', playerCharacterSchema)
+const Character = mongoose.model('Character', characterSchema)
 
-module.exports = PlayerCharacter
+module.exports = Character

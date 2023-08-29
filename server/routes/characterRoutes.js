@@ -17,4 +17,15 @@ router
   .patch(characterController.updateCharacter)
   .delete(characterController.deleteCharacter)
 
+router
+  .route('/npc')
+  .get(characterController.getAllCharacters)
+  .post(characterController.createCharacter)
+
+router
+  .route('/npc/:id')
+  .get(characterController.getCharacter)
+  .patch(characterController.updateCharacter)
+  .delete(characterController.deleteCharacter)
+
 module.exports = router

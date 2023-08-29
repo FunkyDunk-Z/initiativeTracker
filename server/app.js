@@ -7,6 +7,7 @@ const userRouter = require('./routes/userRoutes')
 const ancestryRouter = require('./routes/ancestryRoutes')
 const characterRouter = require('./routes/characterRoutes')
 const campaignRouter = require('./routes/campaignRoutes')
+const containerRouter = require('./routes/containerRoutes')
 const codexRouter = require('./routes/codexRoutes')
 
 const app = express()
@@ -31,6 +32,7 @@ app.use('/api/v1/users', userRouter)
 app.use('/api/v1/ancestry', ancestryRouter)
 app.use('/api/v1/character', characterRouter)
 app.use('/api/v1/campaign', campaignRouter)
+app.use('/api/v1/container', containerRouter)
 app.use('/api/v1/codex', codexRouter)
 
 module.exports = app
