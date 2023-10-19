@@ -1,0 +1,38 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary-color: rgb(226, 51, 27);
+}
+
+body {
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+  font-family: inherit;
+  width: max-content;
+}
+a:hover {
+  color: var(--primary-color);
+}
+
+.containerMain {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+
+  justify-items: center;
+  align-items: center;
+}
